@@ -20,8 +20,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 application.add_handler(CommandHandler("start", start))
 
+import asyncio
+import requests
+
 if __name__ == "__main__":
-    application.initialize()
+    asyncio.run(application.initialize())
+    requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url=https://cspdm.onrender.com/")
     app.run(host="0.0.0.0", port=5000)
+
+
 
 
