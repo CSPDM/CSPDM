@@ -25,8 +25,9 @@ import requests
 
 if __name__ == "__main__":
     asyncio.run(application.initialize())
-    requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url=https://cspdm.onrender.com/")
+    requests.get(f"https://api.telegram.org/bot7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o/setWebhook?url=https://cspdm.onrender.com/")
     app.run(host="0.0.0.0", port=5000)
+
 
 
 
