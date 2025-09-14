@@ -19,4 +19,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 application.add_handler(CommandHandler("start", start))
 
 if __name__ == "__main__":
+    application.initialize()
     app.run(host="0.0.0.0", port=5000)
+
