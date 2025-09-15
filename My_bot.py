@@ -20,7 +20,7 @@ app = Flask(__name__)
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
   # يجب تغيير هذا إلى رابطك الحقيقي
-WEBHOOK_PORT = 10000  # أو أي بورت تفضله
+WEBHOOK_PORT = 4000  # أو أي بورت تفضله
 
 # معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
 TARGET_USERNAME = "@developers_Ahmad"
@@ -565,7 +565,16 @@ def health_check():
     """فحص صحة الخدمة"""
     return jsonify({"status": "healthy", "bot": "running"})
 
-if __name__ == '__main__':
-    # تشغيل Flask app
-    logger.info("✅ البوت يعمل باستخدام Flask وWebhook...")
-    app.run(host='0.0.0.0', port=WEBHOOK_PORT, ssl_context='adhoc')
+import os
+
+if __name__ == "__main__":
+    try:
+        # تسجبل الـ Webhook عند Telegram
+        requests.get(f"https://api.telegram.org/7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url=https://cspdm-zvoq.onrender.com")
+        print("✅ Webhook تم تسجيله بنجاح")
+
+        # ربط التطبيق على 0.0.0.0 وعلى البورت اللي Render يحددها
+        port = int(os.environ.get("PORT", 4000))
+        app.run(host="0.0.0.0", port=port)
+    except Exception as e:
+        logger.error(f"❌ فشل التشغيل: {e}")
