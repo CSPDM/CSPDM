@@ -22,12 +22,13 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET", "HEAD", "POST"])
 def root():
-                          if flask_request.method == "POST":
-             data = flask_request.get_json(force=True)
+    if flask_request.method == "POST":
+        data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-                  application.update_queue.put(update)
+        application.update_queue.put(update)
         return "", 200
-          return "OK", 200
+    return "OK", 200
+
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
