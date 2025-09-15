@@ -1,6 +1,7 @@
 import logging
 import re
 import requests
+import asyncio
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
 from telegram.request import HTTPXRequest
@@ -24,7 +25,7 @@ def root():
     if flask_request.method == "POST":
         data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        application.process_update(update)
+        asyncio.run(application.process_update(update))
         return "", 200
     return "OK", 200
 
