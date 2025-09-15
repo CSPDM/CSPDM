@@ -570,7 +570,7 @@ import os
 if __name__ == "__main__":
     try:
         # تسجبل الـ Webhook عند Telegram
-        requests.get(f"https://api.telegram.org/7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url=https://cspdm-zvoq.onrender.com")
+      requests.get(f"https://api.telegram.org/bot{7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url={https://cspdm-zvoq.onrender.com}")
         print("✅ Webhook تم تسجيله بنجاح")
 
         # ربط التطبيق على 0.0.0.0 وعلى البورت اللي Render يحددها
