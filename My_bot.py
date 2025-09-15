@@ -569,7 +569,7 @@ async def set_webhook():
         return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/health', methods=['GET'])
-def health_check():
+def health():
     """فحص صحة الخدمة"""
     return jsonify({"status": "healthy", "bot": "running"})
 
