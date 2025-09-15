@@ -23,9 +23,9 @@ app = Flask(__name__)
 @app.route("/", methods=["GET", "HEAD", "POST"])
 def root():
     if flask_request.method == "POST":
-        data = flask_request.get_json(force=True)
+             data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        runapplication.update_queue.put(update)
+                  application.update_queue.put(update)
         return "", 200
     return "OK", 200
 
