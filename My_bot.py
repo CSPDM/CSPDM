@@ -6,7 +6,7 @@ from telegram.ext import Application, CommandHandler, CallbackQueryHandler, Cont
 from telegram.request import HTTPXRequest
 import time
 from collections import defaultdict
-from flask import Flask, request, jsonify
+from flask import Flask, request as flask_request
 
 # تكوين التسجيل
 logging.basicConfig(
@@ -21,8 +21,8 @@ app = Flask(__name__)
 
 @app.route("/", methods=["GET", "HEAD", "POST"])
 def root():
-    if request.method == "POST":
-        data = request.get_json(force=True)
+    if flask_request.method == "POST":
+        data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
         application.process_update(update)
         return "", 200
