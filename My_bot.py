@@ -10,9 +10,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(_name_)
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
+
+# معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
+TARGET_USERNAME = "@developers_Ahmad"
 
 # قاعدة البيانات للخدمات والأسعار
 SERVICES = {
@@ -57,7 +60,7 @@ SERVICES = {
 
 # قائمة الكلمات البذيئة (يمكن إضافة المزيد)
 BAD_WORDS = [
-    'كس', 'طيز', 'شرموطة', 'عاهر', 'زبالة', 'قحبة', 'منيوك', 'منيوكة', 'كلب', 'ابن الكلب',
+    'كس', 'طيز', 'شرموطة', 'عاهر', 'زبالة', 'قحبة', 'منيوك', 'منiوكة', 'كلب', 'ابن الكلب',
     'خرا', 'عير', 'زق', 'فاجر', 'فاجرة', 'دعارة', 'زاني', 'زانية', 'فحل', 'فحلة',
     'قحاب', 'شراميط', 'أولاد الحرام', 'بنات الحرام', 'يلعن', 'يلعنه', 'يلعنك', 'سب',
     'اشتم', 'قحبه', 'شرموطه', 'زق', 'خرة', 'طيزه', 'طيزك'
@@ -65,6 +68,16 @@ BAD_WORDS = [
 
 # تخزين تحذيرات المستخدمين
 user_warnings = defaultdict(int)
+
+# ردود تلقائية للرسائل في الخاص
+AUTO_RESPONSES = {
+    "hello": ["مرحبا", "هلا", "السلام عليكم", "اهلا", "اهلين", "hello", "hi", "اهلاً"],
+    "thanks": ["شكرا", "شكراً", "thank you", "thanks", "متشكر", "مشكور"],
+    "how_are_you": ["كيفك", "كيف الحال", "شونك", "أخبارك", "how are you"]
+}
+
+# قائمة بأوامر النظام التي يجب تجاهلها (لتفادي التكرار)
+SYSTEM_COMMANDS = ['/start', '/resetwarnings', '/help', '/settings']
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """القائمة الرئيسية"""
@@ -84,12 +97,109 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         
         await update.message.reply_text(
-            "🚀 **مرحباً! اختر القسم الذي تريده:**",
+            "🚀 *مرحباً! اختر القسم الذي تريده:*",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode='Markdown'
         )
     except Exception as e:
         logger.error(f"Error in start command: {e}")
+
+async def handle_all_private_messages(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """الرد على جميع الرسائل في الخاص"""
+    try:
+        # التحقق إذا كانت المحادثة خاصة
+        if update.message.chat.type != 'private':
+            return
+            
+        # تخطي الرسائل من البوت نفسه
+        if update.message.from_user and update.message.from_user.is_bot:
+            return
+            
+        # تخطي الأوامر (يتم التعامل معها بواسطة handlers أخرى)
+        if update.message.text and any(update.message.text.startswith(cmd) for cmd in SYSTEM_COMMANDS):
+            return
+            
+        user_id = update.message.from_user.id
+        message_text = update.message.text.lower() if update.message.text else ""
+        
+        # الرد التلقائي بناءً على نوع المحتوى
+        if update.message.text:
+            # الرد على الرسائل النصية
+            response = None
+            
+            # التحقق من نوع الرسالة وإرسال رد مناسب
+            for word in AUTO_RESPONSES["hello"]:
+                if word in message_text:
+                    response = "أهلاً وسهلاً بك! 😊\nكيف يمكنني مساعدتك اليوم؟"
+                    break
+                    
+            if not response:
+                for word in AUTO_RESPONSES["thanks"]:
+                    if word in message_text:
+                        response = "العفو! 😊\nدائماً بخدمتك. هل هناك شيء آخر تحتاجه؟"
+                        break
+                        
+            if not response:
+                for word in AUTO_RESPONSES["how_are_you"]:
+                    if word in message_text:
+                        response = "الحمد لله بخير! 😊\nشكراً لسؤالك. كيف يمكنني مساعدتك؟"
+                        break
+                        
+            # إذا لم يكن هناك رد محدد، نرسل رداً عاماً
+            if not response:
+                response = (
+                    "شكراً لتواصلك معنا! 😊\n"
+                    "يمكنني مساعدتك في:\n"
+                    "• 📱 التسويق الإلكتروني\n"
+                    "• 🔒 الأمن السيبراني\n"
+                    "• 💻 تصميم مواقع ويب\n\n"
+                    "اكتب /start لرؤية القائمة الرئيسية."
+                )
+            
+            # إرسال الرد
+            await update.message.reply_text(response)
+            
+        elif update.message.photo:
+            # الرد على الصور
+            await update.message.reply_text(
+                "شكراً لك على الصورة! 📸\n"
+                "كيف يمكنني مساعدتك؟ اكتب /start لرؤية الخدمات المتاحة."
+            )
+            
+        elif update.message.video:
+            # الرد على الفيديوهات
+            await update.message.reply_text(
+                "شكراً لك على الفيديو! 🎥\n"
+                "كيف يمكنني مساعدتك؟ اكتب /start لرؤية الخدمات المتاحة."
+            )
+            
+        elif update.message.document:
+            # الرد على المستندات
+            await update.message.reply_text(
+                "شكراً لك على المستند! 📄\n"
+                "كيف يمكنني مساعدتك؟ اكتب /start لرؤية الخدمات المتاحة."
+            )
+            
+        elif update.message.voice:
+            # الرد على الرسائل الصوتية
+            await update.message.reply_text(
+                "شكراً لك على الرسالة الصوتية! 🎙\n"
+                "كيف يمكنني مساعدتك؟ اكتب /start لرؤية الخدمات المتاحة."
+            )
+            
+        elif update.message.sticker:
+            # الرد على الملصقات (لا نرد عليها عادةً لتجنب التكرار)
+            pass
+            
+        else:
+            # الرد على أي نوع آخر من المحتوى
+            await update.message.reply_text(
+                "شكراً لك على رسالتك! 💬\n"
+                "كيف يمكنني مساعدتك؟ اكتب /start لرؤية الخدمات المتاحة."
+            )
+            
+    except Exception as e:
+        logger.error(f"Error handling private message: {e}")
 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالجة الرسائل في المجموعات فقط"""
@@ -128,9 +238,9 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
             
             warning_msg = ""
             if user_warnings[user_id] == 1:
-                warning_msg = f"⚠️ تحذير للمستخدم {update.message.from_user.first_name}! هذه المرة الأولى."
+                warning_msg = f"⚠ تحذير للمستخدم {update.message.from_user.first_name}! هذه المرة الأولى."
             elif user_warnings[user_id] == 2:
-                warning_msg = f"⚠️ تحذير ثاني للمستخدم {update.message.from_user.first_name}! هذه المرة الثانية."
+                warning_msg = f"⚠ تحذير ثاني للمستخدم {update.message.from_user.first_name}! هذه المرة الثانية."
             else:
                 # حذف المستخدم بعد 3 تحذيرات
                 try:
@@ -146,6 +256,36 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
                 
     except Exception as e:
         logger.error(f"Error in group message handling: {e}")
+
+async def handle_mention(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """الرد عندما يتم ذكر المعرف @developers_Ahmad في المجموعات"""
+    try:
+        # التحقق إذا كانت المجموعة
+        if update.message.chat.type not in ['group', 'supergroup']:
+            return
+            
+        # تخطي الرسائل من البوت نفسه
+        if update.message.from_user and update.message.from_user.is_bot:
+            return
+            
+        message_text = update.message.text or ""
+        
+        # التحقق إذا تم ذكر المعرف
+        if TARGET_USERNAME.lower() in message_text.lower():
+            # الرد على التاغ
+            response = (
+                f"شكراً لتواصلك مع {TARGET_USERNAME}! 👋\n"
+                "أنا بوت المساعدة، يمكنني تقديم الخدمات التالية:\n\n"
+                "• 📱 التسويق الإلكتروني\n"
+                "• 🔒 الأمن السيبراني\n"
+                "• 💻 تصميم مواقع ويب\n\n"
+                "راسلني خاص للاستفادة من خدماتنا! 💬"
+            )
+            
+            await update.message.reply_text(response)
+            
+    except Exception as e:
+        logger.error(f"Error handling mention: {e}")
 
 async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالجة الضغط على الأزرار"""
@@ -189,7 +329,7 @@ async def start_from_query(query):
         ]
         
         await query.edit_message_text(
-            "🚀 **مرحباً! اختر القسم الذي تريده:**",
+            "🚀 *مرحباً! اختر القسم الذي تريده:*",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode='Markdown'
         )
@@ -214,7 +354,7 @@ async def show_services(query, category):
         keyboard.append([InlineKeyboardButton("🔙 رجوع", callback_data="back")])
         
         await query.edit_message_text(
-            f"📋 **{category_data['name']}**\n\n"
+            f"📋 *{category_data['name']}*\n\n"
             "اختر الخدمة التي تريدها:",
             reply_markup=InlineKeyboardMarkup(keyboard),
             parse_mode='Markdown'
@@ -234,10 +374,10 @@ async def show_service_details(query, service_id, category):
         service = category_data["services"][service_id]
         
         message = (
-            f"🔍 *{service['name']}*\n\n"
-            f"💰 *السعر:* {service['price']}\n"
-            f"⏰ *المدة:* {service['duration']}\n\n"
-            f"📞 *للطلب أو الاستفسار:*\n"
+            f"🔍 {service['name']}\n\n"
+            f"💰 السعر: {service['price']}\n"
+            f"⏰ المدة: {service['duration']}\n\n"
+            f"📞 للطلب أو الاستفسار:\n"
             f"• Telegram: @developers_Ahmad\n"
             f"• WhatsApp: +963957248651\n\n"
             f"💬 تواصل معنا الآن لبدء المشروع!"
@@ -276,15 +416,15 @@ async def show_service_details(query, service_id, category):
             await query.edit_message_text("❌ حدث خطأ ما. يرجى المحاولة مرة أخرى.")
 
 async def show_contact(query):
-    """عرض معلومات التواصل - الإصلاح هنا"""
+    """عرض معلومات التواصل"""
     try:
         message = (
-            "📞 *التواصل المباشر:*\n\n"
-            "👤 *المسؤول:* أحمد أبو يوسف\n"
-            "📱 *Telegram:* @developers_Ahmad\n"
-            "📞 *WhatsApp:* +963957248651\n"
-            "🕒 *الوقت:* 24/7\n\n"
-            "💬 *تواصل معنا الآن للبدء بمشروعك!*"
+            "📞 التواصل المباشر:\n\n"
+            "👤 المسؤول: أحمد أبو يوسف\n"
+            "📱 Telegram: @developers_Ahmad\n"
+            "📞 WhatsApp: +963957248651\n"
+            "🕒 الوقت: 24/7\n\n"
+            "💬 تواصل معنا الآن للبدء بمشروعك!"
         )
         
         keyboard = [
@@ -336,7 +476,7 @@ async def reset_warnings(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user_warnings[user_id] = 0
             await update.message.reply_text(f"✅ تم إعادة ضبط تحذيرات المستخدم {user_id}.")
         else:
-            await update.message.reply_text("⚠️ يرجى تحديد ID المستخدم: /resetwarnings <user_id>")
+            await update.message.reply_text("⚠ يرجى تحديد ID المستخدم: /resetwarnings <user_id>")
             
     except Exception as e:
         logger.error(f"Error in reset_warnings: {e}")
@@ -362,6 +502,20 @@ def main():
         application.add_handler(CommandHandler("resetwarnings", reset_warnings))
         application.add_handler(CallbackQueryHandler(handle_button_click))
         
+        # معالجة جميع الرسائل في الخاص (بأولوية منخفضة)
+        all_messages_handler = MessageHandler(
+            filters.ChatType.PRIVATE & ~filters.COMMAND,
+            handle_all_private_messages
+        )
+        application.add_handler(all_messages_handler)
+        
+        # معالجة الرد على التاغات في المجموعات
+        mention_handler = MessageHandler(
+            filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
+            handle_mention
+        )
+        application.add_handler(mention_handler)
+        
         # معالجة رسائل المجموعات فقط (بأولوية منخفضة)
         group_handler = MessageHandler(
             filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
@@ -371,7 +525,7 @@ def main():
         
         application.add_error_handler(error_handler)
         
-        logger.info("✅ البوت يعمل بنظام القوائم المتداخلة وإدارة المجموعات...")
+        logger.info("✅ البوت يعمل وسيرد على جميع الرسائل في الخاص وعند التاغ...")
         application.run_polling(
             drop_pending_updates=True,
             allowed_updates=Update.ALL_TYPES
@@ -380,7 +534,7 @@ def main():
     except Exception as e:
         logger.error(f"فشل تشغيل البوت: {e}")
 
-if __name__ == '__main__':
+if _name_ == '_main_':
     while True:
         try:
             main()
