@@ -18,8 +18,8 @@ logger = logging.getLogger(_name_)
 app = Flask(_name_)
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
-WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/
-"  # يجب تغيير هذا إلى رابطك الحقيقي
+WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
+  # يجب تغيير هذا إلى رابطك الحقيقي
 WEBHOOK_PORT = 5000  # أو أي بورت تفضله
 
 # معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
