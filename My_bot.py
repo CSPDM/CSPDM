@@ -25,7 +25,7 @@ def root():
     if flask_request.method == "POST":
         data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        asyncio.run(application.process_update(update))
+        asyncio.runapplication.update_queue.put(update)
         return "", 200
     return "OK", 200
 
