@@ -4,15 +4,16 @@ from flask import Flask, request as flask_request
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.request import HTTPXRequest
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
+import os
 
 # إعداد Flask
 app = Flask(__name__)
 
 # إعداد التسجيل
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # بيانات الخدمات
@@ -55,35 +56,28 @@ SERVICES = {
 }
 
 # إعداد التوكن والرابط
-BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
-WEBHOOK_URL = "https://cspdm-zvoq.onrender.com"
+BOT_TOKEN = os.getenv("7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o")
+WEBHOOK_URL = os.getenv("https://cspdm-zvoq.onrender.com")
 
-# أمر /start
+# أوامر البوت
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("أهلاً بك في بوت CSPDM ✅")
 
-# أمر /filter
 async def filter_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     args = context.args
     if not args or len(args) < 2:
-        await update.message.reply_text(
-            "استخدم الأمر هكذا:\n`/filter marketing 100`\nلعرض خدمات التسويق تحت 100$",
-            parse_mode="Markdown"
-        )
+        await update.message.reply_text("استخدم الأمر هكذا:\n`/filter marketing 100`", parse_mode="Markdown")
         return
-
     category = args[0].lower()
     try:
         max_price = int(args[1])
     except ValueError:
-        await update.message.reply_text("يرجى تحديد السعر كرقم صحيح، مثل `/filter design 300`")
+        await update.message.reply_text("يرجى تحديد السعر كرقم صحيح.")
         return
-
     section = SERVICES.get(category)
     if not section:
         await update.message.reply_text(f"القسم '{category}' غير موجود.")
         return
-
     results = []
     for code, service in section["services"].items():
         price_range = service["price"].replace("$", "").replace("–", "-").split("-")
@@ -92,16 +86,9 @@ async def filter_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except ValueError:
             continue
         if max_price_val <= max_price:
-            results.append(
-                f"🔹 {service['name']}\n💰 السعر: {service['price']}\n⏱️ المدة: {service['duration']}"
-            )
+            results.append(f"🔹 {service['name']}\n💰 السعر: {service['price']}\n⏱️ المدة: {service['duration']}")
+    await update.message.reply_text("\n\n".join(results) if results else "لا توجد خدمات ضمن هذا السعر.")
 
-    if results:
-        await update.message.reply_text("\n\n".join(results))
-    else:
-        await update.message.reply_text("لا توجد خدمات ضمن هذا السعر.")
-
-# أمر /services التفاعلي
 async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("📱 التسويق", callback_data="marketing")],
@@ -109,23 +96,20 @@ async def services_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("💻 تصميم المواقع", callback_data="design")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("اختر القسم الذي ترغب بعرض خدماته:", reply_markup=reply_markup)
+    await update.message.reply_text("اختر القسم:", reply_markup=reply_markup)
 
-# عرض الخدمات عند الضغط على زر
 async def show_services(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     category = query.data
     section = SERVICES.get(category)
-
     if not section:
         await query.edit_message_text("القسم غير موجود.")
         return
-
     services_text = f"{section['name']}\n\n"
     for code, service in section["services"].items():
         services_text += f"🔹 {service['name']}\n💰 السعر: {service['price']}\n⏱️ المدة: {service['duration']}\n\n"
-
+        log_request(query.from_user.username or "بدون اسم", service["name"], section["name"], service["price"])
     await query.edit_message_text(services_text)
 
 # إنشاء التطبيق
@@ -134,17 +118,14 @@ application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("filter", filter_command))
 application.add_handler(CommandHandler("services", services_command))
 application.add_handler(CallbackQueryHandler(show_services))
-application.run_polling(stop_signals=None)
 
 # استقبال التحديثات من Telegram
-@app.route("/", methods=["GET", "HEAD", "POST"])
+@app.route("/", methods=["POST"])
 def root():
-    if flask_request.method == "POST":
-        data = flask_request.get_json(force=True)
-        update = Update.de_json(data, application.bot)
-        application.update_queue.put(update)
-        return "", 200
-    return "OK", 200
+    data = flask_request.get_json(force=True)
+    update = Update.de_json(data, application.bot)
+    application.update_queue.put(update)
+    return "", 200
 
 # تسجيل Webhook
 requests.get(f"https://api.telegram.org/bot{7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url={https://cspdm-zvoq.onrender.com}")
