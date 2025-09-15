@@ -534,7 +534,8 @@ def main():
     except Exception as e:
         logger.error(f"فشل تشغيل البوت: {e}")
 
-if _name_ == '_main_':
+if __name__ == "__main__":
+    # شغّل البوت أو السيرفر هنا
     while True:
         try:
             main()
