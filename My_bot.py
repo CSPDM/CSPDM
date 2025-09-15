@@ -25,13 +25,13 @@ def root():
     if flask_request.method == "POST":
         data = flask_request.get_json(force=True)
         update = Update.de_json(data, application.bot)
-        asyncio.runapplication.update_queue.put(update)
+        runapplication.update_queue.put(update)
         return "", 200
     return "OK", 200
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
-  # يجب تغيير هذا إلى رابطك الحقيقي
+  # يجب تغيير هذا إلى رابطك الحقيقي 
 WEBHOOK_PORT = 4000  # أو أي بورت تفضله
 
 # معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
