@@ -569,12 +569,14 @@ import os
 
 if __name__ == "__main__":
     try:
-        # تسجبل الـ Webhook عند Telegram
-      requests.get(f"https://api.telegram.org/bot{7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url={https://cspdm-zvoq.onrender.com}")
-    print("✅ Webhook تم تسجيله بنجاح")
+        # تسجيل Webhook عند Telegram
+        requests.get(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/setWebhook?url={WEBHOOK_URL}"
+        )
+        print("✅ Webhook تم تسجيله بنجاح")
 
-        # ربط التطبيق على 0.0.0.0 وعلى البورت اللي Render يحددها
-        port = int(os.environ.get("PORT", 4000))
+        # تشغيل Flask على البورت اللي Render يحدّده
+        port = int(os.environ.get("PORT", 5000))
         app.run(host="0.0.0.0", port=port)
     except Exception as e:
         logger.error(f"❌ فشل التشغيل: {e}")
