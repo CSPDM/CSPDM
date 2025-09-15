@@ -15,11 +15,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-# إعداد Flask
-from flask import Flask
 
 app = Flask(__name__)
-
 @app.route("/", methods=["GET", "HEAD", "POST"])
 def root():
     if flask_request.method == "POST":
@@ -29,11 +26,10 @@ def root():
         return "", 200
     return "OK", 200
 
-
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
   # يجب تغيير هذا إلى رابطك الحقيقي 
-WEBHOOK_PORT = 4000  # أو أي بورت تفضله
+WEBHOOK_PORT =10000  # أو أي بورت تفضله
 
 # معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
 TARGET_USERNAME = "@developers_Ahmad"
