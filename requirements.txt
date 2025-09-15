@@ -1,4 +1,5 @@
 Flask
+gunicorn
 pkgconfig==1.5.5
 procfile==0.1.0
 propcache==0.3.2
