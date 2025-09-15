@@ -2,17 +2,25 @@ import logging
 import re
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes, MessageHandler, filters
+from telegram.request import HTTPXRequest
 import time
 from collections import defaultdict
+from flask import Flask, request, jsonify
 
 # تكوين التسجيل
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger(_name_)
+
+# إعداد Flask
+app = Flask(_name_)
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
+WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/
+"  # يجب تغيير هذا إلى رابطك الحقيقي
+WEBHOOK_PORT = 5000  # أو أي بورت تفضله
 
 # معرف المستخدم الذي تريد البوت أن يرد عند مراسلته
 TARGET_USERNAME = "@developers_Ahmad"
@@ -78,6 +86,10 @@ AUTO_RESPONSES = {
 
 # قائمة بأوامر النظام التي يجب تجاهلها (لتفادي التكرار)
 SYSTEM_COMMANDS = ['/start', '/resetwarnings', '/help', '/settings']
+
+# تهيئة تطبيق Telegram
+request = HTTPXRequest(connection_pool_size=8)
+application = Application.builder().token(BOT_TOKEN).request(request).build()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """القائمة الرئيسية"""
@@ -486,60 +498,74 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالج الأخطاء العام"""
     logger.error(f"حدث خطأ: {context.error}", exc_info=context.error)
 
-def main():
-    """تشغيل البوت"""
-    try:
-        application = Application.builder()\
-            .token(BOT_TOKEN)\
-            .read_timeout(30)\
-            .write_timeout(30)\
-            .connect_timeout(30)\
-            .pool_timeout(30)\
-            .build()
-        
-        # إضافة handlers مع الأولوية الصحيحة
-        application.add_handler(CommandHandler("start", start))
-        application.add_handler(CommandHandler("resetwarnings", reset_warnings))
-        application.add_handler(CallbackQueryHandler(handle_button_click))
-        
-        # معالجة جميع الرسائل في الخاص (بأولوية منخفضة)
-        all_messages_handler = MessageHandler(
-            filters.ChatType.PRIVATE & ~filters.COMMAND,
-            handle_all_private_messages
-        )
-        application.add_handler(all_messages_handler)
-        
-        # معالجة الرد على التاغات في المجموعات
-        mention_handler = MessageHandler(
-            filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
-            handle_mention
-        )
-        application.add_handler(mention_handler)
-        
-        # معالجة رسائل المجموعات فقط (بأولوية منخفضة)
-        group_handler = MessageHandler(
-            filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
-            handle_group_message
-        )
-        application.add_handler(group_handler)
-        
-        application.add_error_handler(error_handler)
-        
-        logger.info("✅ البوت يعمل وسيرد على جميع الرسائل في الخاص وعند التاغ...")
-        application.run_polling(
-            drop_pending_updates=True,
-            allowed_updates=Update.ALL_TYPES
-        )
-        
-    except Exception as e:
-        logger.error(f"فشل تشغيل البوت: {e}")
+# إضافة handlers
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("resetwarnings", reset_warnings))
+application.add_handler(CallbackQueryHandler(handle_button_click))
 
-if __name__ == "__main__":
-    # شغّل البوت أو السيرفر هنا
-    while True:
-        try:
-            main()
-        except Exception as e:
-            logger.error(f"Bot crashed: {e}")
-            print(f"Bot crashed, restarting in 5 seconds...")
-            time.sleep(5)
+# معالجة جميع الرسائل في الخاص (بأولوية منخفضة)
+all_messages_handler = MessageHandler(
+    filters.ChatType.PRIVATE & ~filters.COMMAND,
+    handle_all_private_messages
+)
+application.add_handler(all_messages_handler)
+
+# معالجة الرد على التاغات في المجموعات
+mention_handler = MessageHandler(
+    filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
+    handle_mention
+)
+application.add_handler(mention_handler)
+
+# معالجة رسائل المجموعات فقط (بأولوية منخفضة)
+group_handler = MessageHandler(
+    filters.TEXT & filters.ChatType.GROUPS & ~filters.COMMAND,
+    handle_group_message
+)
+application.add_handler(group_handler)
+
+application.add_error_handler(error_handler)
+
+@app.route('/webhook', methods=['POST'])
+async def webhook():
+    """معالجة webhook"""
+    try:
+        # تحديث البيانات الواردة من Telegram
+        update = Update.de_json(await request.get_json(), application.bot)
+        await application.process_update(update)
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        logger.error(f"Error in webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/set_webhook', methods=['GET'])
+async def set_webhook():
+    """تعيين webhook"""
+    try:
+        # حذف webhook الحالي أولاً
+        await application.bot.delete_webhook()
+        
+        # تعيين webhook جديد
+        result = await application.bot.set_webhook(
+            url=WEBHOOK_URL,
+            drop_pending_updates=True
+        )
+        
+        if result:
+            return jsonify({"status": "success", "message": "Webhook set successfully"})
+        else:
+            return jsonify({"status": "error", "message": "Failed to set webhook"}), 500
+            
+    except Exception as e:
+        logger.error(f"Error setting webhook: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """فحص صحة الخدمة"""
+    return jsonify({"status": "healthy", "bot": "running"})
+
+if _name_ == '_main_':
+    # تشغيل Flask app
+    logger.info("✅ البوت يعمل باستخدام Flask وWebhook...")
+    app.run(host='0.0.0.0', port=WEBHOOK_PORT, ssl_context='adhoc')
