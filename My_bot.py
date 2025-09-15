@@ -19,11 +19,14 @@ from flask import Flask
 
 app = Flask(__name__)
 
-# إضافة هذا المسار قبل بقية Routes
-@app.route("/", methods=["GET", "HEAD"])
-def health_check():
+@app.route("/", methods=["GET", "HEAD", "POST"])
+def root():
+    if request.method == "POST":
+        data = request.get_json(force=True)
+        update = Update.de_json(data, application.bot)
+        application.process_update(update)
+        return "", 200
     return "OK", 200
-
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
