@@ -12,10 +12,10 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
     level=logging.INFO
 )
-logger = logging.getLogger(_name_)
+logger = logging.getLogger(__name__)
 
 # إعداد Flask
-app = Flask(_name_)
+app = Flask(__name__)
 
 BOT_TOKEN = "7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o"
 WEBHOOK_URL = "https://cspdm-zvoq.onrender.com/"
@@ -565,7 +565,7 @@ def health_check():
     """فحص صحة الخدمة"""
     return jsonify({"status": "healthy", "bot": "running"})
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     # تشغيل Flask app
     logger.info("✅ البوت يعمل باستخدام Flask وWebhook...")
     app.run(host='0.0.0.0', port=WEBHOOK_PORT, ssl_context='adhoc')
