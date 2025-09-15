@@ -34,8 +34,8 @@ SERVICES = {
     }
 }
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+BOT_TOKEN = os.getenv("7674783654:AAG4oMSnzCLSHJCq1-iFZ4kEs-NqWbGLjCA")
+WEBHOOK_URL = os.getenv("https://cspdm-1.onrender.com")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("أهلاً بك في بوت CSPDM ✅")
@@ -103,4 +103,4 @@ def root():
     application.update_queue.put(update)
     return "", 200
 
-requests.get(f"https://api.telegram.org/bot{7674783654:AAEsfosyZs40Aklk8hzB5L6fWMuiNQXa73o}/setWebhook?url={https://cspdm-zvoq.onrender.com}")
+requests.get(f"https://api.telegram.org/bot{7674783654:AAG4oMSnzCLSHJCq1-iFZ4kEs-NqWbGLjCA}/setWebhook?url={https://cspdm-1.onrender.com}")
