@@ -3,7 +3,7 @@ gunicorn
 pkgconfig==1.5.5
 procfile==0.1.0
 propcache==0.3.2
-python-telegram-bot==22.3
+python-telegram-bot[webhooks]
 requests==2.32.4
 scikit-build==0.18.1
 setuptools==79.0.1
