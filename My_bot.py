@@ -18,7 +18,7 @@ app = Flask(__name__)
 
 # متغيرات البيئة
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8377700044:AAGYmC61xBDGTNelM8Zm22KG0w1oYHeY5ok")
-WEBHOOK_URL = os.getenv("https://cspdm-2.onrender.com")  # يجب تعيينه في Render
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://cspdm-2.onrender.com")  # يجب تعيينه في Render
 PORT = int(os.getenv("PORT", 8000))
 
 # إنشاء كائن البوت
