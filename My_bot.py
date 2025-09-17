@@ -1,29 +1,21 @@
 import logging
-import json
 import os
-from flask import Flask, request, jsonify
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, Bot
+from telegram import Update
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
-import asyncio
+from flask import Flask, request, jsonify
 
 # تكوين التسجيل
 logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', 
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
 
-# Flask app
-app = Flask(__name__)
-
 # متغيرات البيئة
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8377700044:AAGYmC61xBDGTNelM8Zm22KG0w1oYHeY5ok")
-WEBHOOK_URL = os.getenv("WEBHOOK_URL", "https://cspdm-2.onrender.com")  # يجب تعيينه في Render
-PORT = int(os.getenv("PORT", 8000))
-
-# إنشاء كائن البوت
-bot = Bot(token=BOT_TOKEN)
-application = Application.builder().token(BOT_TOKEN).build()
+# استخدم os.environ.get() بدلاً من os.getenv() للوصول المباشر إلى المتغيرات
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
+PORT = int(os.environ.get("PORT", "8000"))
 
 # قاعدة البيانات للخدمات والأسعار
 SERVICES = {
@@ -42,9 +34,8 @@ SERVICES = {
             "m10": {"name": "استشارات دائمة بعد انتهاء العرض", "price": "50-100$", "duration": "شهري"}
         }
     },
-    
     "security": {
-        "name": "🔒 الأمن السيبراني", 
+        "name": "🔒 الأمن السيبراني",
         "services": {
             "s1": {"name": "حماية المواقع من الاختراق", "price": "300-600$", "duration": "7-14 يوم"},
             "s2": {"name": "اختبار الاختراق (Penetration Testing)", "price": "400-800$", "duration": "10-15 يوم"},
@@ -53,7 +44,6 @@ SERVICES = {
             "s5": {"name": "تدريب موظفين على الأمن", "price": "150-300$", "duration": "3-5 أيام"}
         }
     },
-    
     "design": {
         "name": "💻 تصميم مواقع ويب",
         "services": {
@@ -68,6 +58,7 @@ SERVICES = {
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """القائمة الرئيسية"""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup # يتم استيرادها هنا لتجنب مشاكل الاستيراد الدائري
     try:
         keyboard = [
             [InlineKeyboardButton("📱 التسويق الإلكتروني", callback_data="category_marketing")],
@@ -117,6 +108,7 @@ async def handle_button_click(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def start_from_query(query):
     """بدء البوت من استعلام (لزر الرجوع)"""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup # يتم استيرادها هنا
     try:
         keyboard = [
             [InlineKeyboardButton("📱 التسويق الإلكتروني", callback_data="category_marketing")],
@@ -135,6 +127,7 @@ async def start_from_query(query):
 
 async def show_services(query, category):
     """عرض خدمات القسم"""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
     try:
         category_data = SERVICES.get(category)
         if not category_data:
@@ -144,7 +137,7 @@ async def show_services(query, category):
         keyboard = []
         for service_id, service in category_data["services"].items():
             keyboard.append([InlineKeyboardButton(
-                f"• {service['name']}", 
+                f"• {service['name']}",
                 callback_data=f"service_{service_id}_{category}"
             )])
         
@@ -162,6 +155,7 @@ async def show_services(query, category):
 
 async def show_service_details(query, service_id, category):
     """عرض تفاصيل الخدمة"""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
     try:
         category_data = SERVICES.get(category)
         if not category_data or service_id not in category_data["services"]:
@@ -193,31 +187,11 @@ async def show_service_details(query, service_id, category):
         )
     except Exception as e:
         logger.error(f"Error showing service details: {e}")
-        try:
-            service = category_data["services"][service_id]
-            message = (
-                f"🔍 {service['name']}\n\n"
-                f"💰 السعر: {service['price']}\n"
-                f"⏰ المدة: {service['duration']}\n\n"
-                f"📞 للطلب أو الاستفسار:\n"
-                f"• Telegram: @Cyber_Engineer_Ahmed\n"
-                f"• WhatsApp: +963957248651\n\n"
-                f"💬 تواصل معنا الآن لبدء المشروع!"
-            )
-            keyboard = [
-                [InlineKeyboardButton("🔙 رجوع للخدمات", callback_data=f"category_{category}")],
-                [InlineKeyboardButton("📞 التواصل المباشر", callback_data="contact")]
-            ]
-            await query.edit_message_text(
-                message,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=None
-            )
-        except:
-            await query.edit_message_text("❌ حدث خطأ ما. يرجى المحاولة مرة أخرى.")
+        await query.edit_message_text("❌ حدث خطأ ما. يرجى المحاولة مرة أخرى.")
 
 async def show_contact(query):
     """عرض معلومات التواصل"""
+    from telegram import InlineKeyboardButton, InlineKeyboardMarkup
     try:
         message = (
             "📞 التواصل المباشر:\n\n"
@@ -240,109 +214,39 @@ async def show_contact(query):
         )
     except Exception as e:
         logger.error(f"Error showing contact: {e}")
-        try:
-            message = (
-                "📞 التواصل المباشر:\n\n"
-                "👤 المسؤول: المهندس أحمد\n"
-                "📱 Telegram: @Cyber_Engineer_Ahmed\n"
-                "📞 WhatsApp: +963957248651\n"
-                "🕒 الوقت: 24/7\n\n"
-                "💬 تواصل معنا الآن للبدء بمشروعك!"
-            )
-            keyboard = [
-                [InlineKeyboardButton("🔙 رجوع للقائمة الرئيسية", callback_data="back")]
-            ]
-            await query.edit_message_text(
-                text=message,
-                reply_markup=InlineKeyboardMarkup(keyboard),
-                parse_mode=None
-            )
-        except Exception as e2:
-            logger.error(f"Second error in contact: {e2}")
-            await query.edit_message_text("❌ حدث خطأ ما. يرجى المحاولة مرة أخرى.")
+        await query.edit_message_text("❌ حدث خطأ ما. يرجى المحاولة مرة أخرى.")
+
 
 async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """معالج الأخطاء العام"""
     logger.error(f"حدث خطأ: {context.error}", exc_info=context.error)
 
-# إعداد handlers
-application.add_handler(CommandHandler("start", start))
-application.add_handler(CallbackQueryHandler(handle_button_click))
-application.add_error_handler(error_handler)
+def main():
+    """الدالة الرئيسية لتشغيل البوت"""
+    # تهيئة كائن البوت والتطبيق
+    if not BOT_TOKEN:
+        logger.error("BOT_TOKEN is not set in environment variables.")
+        return
+    
+    if not WEBHOOK_URL:
+        logger.error("WEBHOOK_URL is not set in environment variables.")
+        return
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    """معالج Webhook"""
-    try:
-        json_data = request.get_json()
-        logger.info(f"Received webhook data: {json_data}")
-        
-        update = Update.de_json(json_data, bot)
-        
-        # تشغيل التطبيق في async context
-        asyncio.run(application.process_update(update))
-        
-        return jsonify({'status': 'ok'})
-    except Exception as e:
-        logger.error(f"Error processing webhook: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+    application = Application.builder().token(BOT_TOKEN).build()
 
-@app.route('/health', methods=['GET'])
-def health_check():
-    """فحص صحة التطبيق"""
-    return jsonify({'status': 'healthy', 'service': 'telegram-bot'})
+    # إعداد handlers
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CallbackQueryHandler(handle_button_click))
+    application.add_error_handler(error_handler)
 
-@app.route('/', methods=['GET'])
-def index():
-    """الصفحة الرئيسية"""
-    return jsonify({
-        'message': 'Telegram Bot is running!',
-        'status': 'active',
-        'webhook_url': f"{WEBHOOK_URL}/webhook" if WEBHOOK_URL else "Not configured"
-    })
-
-@app.route('/set_webhook', methods=['POST'])
-def set_webhook():
-    """تعيين Webhook"""
-    try:
-        if not WEBHOOK_URL:
-            return jsonify({'error': 'WEBHOOK_URL not configured'}), 400
-            
-        webhook_url = f"{WEBHOOK_URL}/webhook"
-        
-        # تشغيل في async context
-        async def setup_webhook():
-            await bot.set_webhook(url=webhook_url)
-            return True
-            
-        success = asyncio.run(setup_webhook())
-        
-        if success:
-            logger.info(f"Webhook set successfully: {webhook_url}")
-            return jsonify({'message': 'Webhook set successfully', 'url': webhook_url})
-        else:
-            return jsonify({'error': 'Failed to set webhook'}), 500
-            
-    except Exception as e:
-        logger.error(f"Error setting webhook: {e}")
-        return jsonify({'error': str(e)}), 500
+    # تشغيل الـ webhook
+    logger.info("🚀 Starting bot with webhook...")
+    application.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=BOT_TOKEN,
+        webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}"
+    )
 
 if __name__ == '__main__':
-    logger.info("🚀 Starting Telegram Bot with Flask webhook...")
-    
-    # تعيين الـ webhook إذا كان مكوناً
-    if WEBHOOK_URL:
-        logger.info(f"Setting up webhook: {WEBHOOK_URL}/webhook")
-        try:
-            async def init_webhook():
-                await bot.set_webhook(url=f"{WEBHOOK_URL}/webhook")
-                logger.info("✅ Webhook configured successfully")
-                
-            asyncio.run(init_webhook())
-        except Exception as e:
-            logger.error(f"Failed to set webhook: {e}")
-    else:
-        logger.warning("⚠ WEBHOOK_URL not set. Please configure it in your environment variables.")
-    
-    # تشغيل Flask server
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    main()
