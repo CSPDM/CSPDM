@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # متغيرات البيئة
 # استخدم os.environ.get() بدلاً من os.getenv() للوصول المباشر إلى المتغيرات
-BOT_TOKEN = os.environ.get("evg-d359bdur433s738kueig")
-WEBHOOK_URL = os.environ.get("evg-d359bdur433s738kueig")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 PORT = int(os.environ.get("PORT", "8000"))
 
 # قاعدة البيانات للخدمات والأسعار
@@ -224,11 +224,11 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     """الدالة الرئيسية لتشغيل البوت"""
     # تهيئة كائن البوت والتطبيق
-    if not BOT_TOKEN:evg-d359bdur433s738kueig
+    if not BOT_TOKEN:
         logger.error("BOT_TOKEN is not set in environment variables.")
         return
     
-    if not WEBHOOK_URL:evg-d359bdur433s738kueig
+    if not WEBHOOK_URL:
         logger.error("WEBHOOK_URL is not set in environment variables.")
         return
 
@@ -244,7 +244,7 @@ def main():
     application.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path=evg-d359bdur433s738kueig,
+        url_path=BOT_TOKEN,
         webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}"
     )
 
