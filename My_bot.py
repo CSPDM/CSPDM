@@ -224,11 +224,11 @@ async def error_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     """الدالة الرئيسية لتشغيل البوت"""
     # تهيئة كائن البوت والتطبيق
-    if not BOT_TOKEN:
+    if not BOT_TOKEN:evg-d359bdur433s738kueig
         logger.error("BOT_TOKEN is not set in environment variables.")
         return
     
-    if not WEBHOOK_URL:
+    if not WEBHOOK_URL:evg-d359bdur433s738kueig
         logger.error("WEBHOOK_URL is not set in environment variables.")
         return
 
@@ -244,7 +244,7 @@ def main():
     application.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path=BOT_TOKEN,
+        url_path=evg-d359bdur433s738kueig,
         webhook_url=f"{WEBHOOK_URL}/{BOT_TOKEN}"
     )
 
