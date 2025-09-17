@@ -327,7 +327,7 @@ def set_webhook():
         logger.error(f"Error setting webhook: {e}")
         return jsonify({'error': str(e)}), 500
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     logger.info("🚀 Starting Telegram Bot with Flask webhook...")
     
     # تعيين الـ webhook إذا كان مكوناً
