@@ -169,7 +169,7 @@ async def show_service_details(query, service_id, category):
             f"💰 السعر: {service['price']}\n"
             f"⏰ المدة: {service['duration']}\n\n"
             f"📞 للطلب أو الاستفسار:\n"
-            f"• Telegram: @Cyber_Engineer_Ahmed\n"
+            f"• Telegram: @Cyber_Engineer_Ahmed \n"
             f"• WhatsApp: +963957248651\n\n"
             f"💬 تواصل معنا الآن لبدء المشروع!"
         )
@@ -196,7 +196,7 @@ async def show_contact(query):
         message = (
             "📞 التواصل المباشر:\n\n"
             "👤 المسؤول: المهندس أحمد\n"
-            "📱 Telegram: @Cyber_Engineer_Ahmed\n"
+            "📱 Telegram: @Cyber_Engineer_Ahmed \n"
             "📞 WhatsApp: +963957248651\n"
             "🕒 الوقت: 24/7\n\n"
             "💬 تواصل معنا الآن للبدء بمشروعك!"
