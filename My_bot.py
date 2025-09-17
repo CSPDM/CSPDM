@@ -13,8 +13,8 @@ logger = logging.getLogger(__name__)
 
 # متغيرات البيئة
 # استخدم os.environ.get() بدلاً من os.getenv() للوصول المباشر إلى المتغيرات
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
+BOT_TOKEN = os.environ.get("evg-d359bdur433s738kueig")
+WEBHOOK_URL = os.environ.get("evg-d359bdur433s738kueig")
 PORT = int(os.environ.get("PORT", "8000"))
 
 # قاعدة البيانات للخدمات والأسعار
